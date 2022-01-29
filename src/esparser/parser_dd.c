@@ -1937,6 +1937,8 @@ void
 parser_ec3_reg(void)
 {
     reg_parser_set("ec3", parser_ec3_create);
+    // register alias to E-AC-3
+    reg_parser_set("eac3", parser_ec3_create);
 }
 
 static void parser_ec3_check_ccff_conformance(parser_dd_handle_t parser_dd)

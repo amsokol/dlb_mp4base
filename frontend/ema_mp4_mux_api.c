@@ -27,6 +27,7 @@
 */
 
 #include <time.h>
+#include <locale.h>
 #include "utils.h"
 #include "io_base.h"
 #include "registry.h"
@@ -387,8 +388,8 @@ ema_mp4_mux_start(ema_mp4_ctrl_handle_t handle)
 
 	if((handle->usr_cfg_mux.ext_timing_info.ext_dv_profile == 8 ) && (handle->usr_cfg_mux.ext_timing_info.ext_dv_bl_compatible_id == 0))
 	{
-             msglog(NULL, MSGLOG_ERR, "Error: For Dolby vision profile 8, dv-bl-compatible-id should be set, value can be 1, 2 or 4.\n");
-             return EMA_MP4_MUXED_PARAM_ERR;
+        msglog(NULL, MSGLOG_ERR, "Error: For Dolby vision profile 8, dv-bl-compatible-id should be set, value can be 1, 2 or 4.\n");
+        return EMA_MP4_MUXED_PARAM_ERR;
 	}
 
     if ( (handle->usr_cfg_mux.output_format == OUTPUT_FORMAT_DASH) ||
@@ -743,7 +744,8 @@ uint32_t
 ema_mp4_mux_set_input(ema_mp4_ctrl_handle_t handle, 
                       int8_t *fn, 
                       int8_t *lang, 
-                      int8_t *enc_name, 
+                      int8_t* name,
+                      int8_t *enc_name,
                       uint32_t time_scale, 
                       uint32_t chunk_span_size, 
                       uint32_t tid)
@@ -798,6 +800,70 @@ ema_mp4_mux_set_input(ema_mp4_ctrl_handle_t handle,
         usr_cfg_es->lang            = (lang) ? STRDUP_CHK(lang) : 0;
     }
     
+    // Store name in UTF-8
+    if (name)
+    {
+        // calculate WCHAR array size
+        size_t res = mbstowcs(NULL, name, strlen(name));
+        if (res == -1) {
+            return EMA_MP4_MUXED_BUGGY;
+        }
+        // allocate WCHAR array
+        wchar_t* wc = malloc((res+1)*sizeof(wchar_t));
+        if (wc == NULL) {
+            return EMA_MP4_MUXED_NO_MEM;
+        }
+
+        // convert chars to WCHARs
+        res = mbstowcs(wc, name, strlen(name));
+        if (res == -1) {
+            // free WCHAR array
+            free(wc);
+            return EMA_MP4_MUXED_BUGGY;
+        }
+        wc[res] = 0;
+
+        _locale_t utf8 = _create_locale(LC_ALL, ".UTF8");
+
+        // calculate UTF-8 array size
+        res = _wcstombs_l(NULL, wc, 0, utf8);
+        if (res == -1) {
+            // free locale
+            _free_locale(utf8);
+            // free WCHAR array
+            free(wc);
+            return EMA_MP4_MUXED_BUGGY;
+        }
+
+        // allocate UTF-8 array
+        char* mb = malloc((res + 1) * sizeof(char));
+        if (mb == NULL) {
+            // free locale
+            _free_locale(utf8);
+            // free WCHAR array
+            free(wc);
+            return EMA_MP4_MUXED_NO_MEM;
+        }
+
+        // convert WCHAR to UTF-8
+        res = _wcstombs_l(mb, wc, res, utf8);
+
+        // free locale
+        _free_locale(utf8);
+
+        // free WCHAR array
+        free(wc);
+
+        if (res == -1) {
+            // free UTF-8 array
+            free(mb);
+            return EMA_MP4_MUXED_BUGGY;
+        }
+        mb[res] = 0;
+
+        usr_cfg_es->hdlr_name = mb;
+    }
+        
     usr_cfg_es->enc_name        = (enc_name) ? STRDUP_CHK(enc_name) : 0;
     /** chunk_span_size: 0 means no chunk span control by size */
     usr_cfg_es->chunk_span_size = 0;
@@ -1096,7 +1162,7 @@ ema_mp4_mux_set_sampleentry_dvh1(ema_mp4_ctrl_handle_t handle, int32_t es_idx)
     else
     {
         msglog(NULL, MSGLOG_ERR,
-                "Error parsing command line: Unknown es index for --dvh1flag.\n");
+            "Error parsing command line: Unknown es index for --dvh1flag.\n");
         return EMA_MP4_MUXED_PARAM_ERR;
     }
 }
@@ -1113,7 +1179,7 @@ ema_mp4_mux_set_sampleentry_hvc1(ema_mp4_ctrl_handle_t handle, int32_t es_idx)
     else
     {
         msglog(NULL, MSGLOG_ERR,
-                "Error parsing command line: Unknown es index for --hvc1flag.\n");
+            "Error parsing command line: Unknown es index for --hvc1flag.\n");
         return EMA_MP4_MUXED_PARAM_ERR;
     }
 }

@@ -7564,7 +7564,7 @@ static const mp4base_version_info mp4base_lib_version =
     MP4BASE_V_API,  /** API */
     MP4BASE_V_FCT,  /** Functionality */
     MP4BASE_V_MTNC, /** Maintenance  */
-    "v1.2.0"
+    "v1.2.1"
 };
 
 const mp4base_version_info*

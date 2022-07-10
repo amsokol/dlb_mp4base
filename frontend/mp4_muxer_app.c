@@ -28,7 +28,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <locale.h>
 
 #include "utils.h"          /** OSAL_xyz() */
 #include "mp4_muxer.h"      /** EMA_MP4_FRAG */
@@ -57,10 +56,7 @@ mp4muxer_usage(void)
     msglog(NULL, MSGLOG_CRIT,
                 " --help,-h                          = Shows the help information.\n"
                 " --version,-v                       = Shows the version information.\n"
-                " --locale <locale>                  = Sets locale for command line text arguments (\"--media-name\", etc.) e.g. \"ru-RU\".\n"
-                "                                      Ignore this one to use OS default locale.\n"
-                " --input-file,-i <file.ext> [--media-lang <language>] \n"
-                "                            [--media-name <name>] \n"
+                " --input-file,-i <file.ext> [--media-lang <language>] \n" 
                 "                            [--media-timescale <timescale>] \n"
                 "                            [--input-video-frame-rate <framerate>]\n"
                 "                                    = Adds elementary stream (ES) file.ext with\n"
@@ -72,16 +68,11 @@ mp4muxer_usage(void)
                 " --mpeg4-brand <arg>                = Specifies the ISO base media file format brand in the format.\n"
                 " --mpeg4-comp-brand <arg>           = Specifies the ISO base media file format compatible brand(s), \n" 
 				"                                      in the format of a comma separated list, for example mp42,iso6,isom,msdh,dby1. \n"
-                " --output-format <arg>              = Sets the output file format or the specification to which the\n"
-
-                "                                      output file must conform. Valid values include 'mp4' and 'frag-mp4'. \n" 
-
-                "                                      'mp4' is the default value.\n"
-
-                " --mpeg4-max-frag-duration <arg>    = Sets the maximum fragment duration in milliseconds. \n" 
-
-                "                                      By default, the max duration is 2s.\n"
-
+                " --output-format <arg>              = Sets the output file format or the specification to which the\n"
+                "                                      output file must conform. Valid values include 'mp4' and 'frag-mp4'. \n" 
+                "                                      'mp4' is the default value.\n"
+                " --mpeg4-max-frag-duration <arg>    = Sets the maximum fragment duration in milliseconds. \n" 
+                "                                      By default, the max duration is 2s.\n"
                 " --dv-profile <arg>                 = Sets the Dolby Vision profile. This option is MANDATORY for \n"
                 "                                      DoVi elementary stream: Valid profile values are:\n"
                 "                                      4 - dvhe.04, BL codec: HEVC10; EL codec: HEVC10; BL compatibility: SDR/HDR.   \n"
@@ -111,10 +102,10 @@ mp4muxer_usage(void)
            "   Note: For the Dolby vision profile 8, dv-bl-compatible-id is necessary. \n\n"
 
            "To multiplex Dolby vision profile 8.4 file into a .mp4 file with sample entry name as 'hvc1':\n"
-           "   mp4muxer -i ves_8.4.265 -o output.mp4 --hvc1flag 0 --dv-profile 8 \n"
+           "   mp4muxer -i ves_8.4.265 -o output.mp4 --hvc1flag 0 --dv-profile 8 \n" 
            "            --dv-bl-compatible-id 4 --mpeg4-comp-brand mp42,iso6,isom,msdh,dby1 --overwrite \n"
            "   Note: For the Dolby vision profile 8, dv-bl-compatible-id is necessary. \n\n"
-    );
+           );
 }
 
 static int32_t
@@ -175,7 +166,7 @@ parse_cli(ema_mp4_ctrl_handle_t handle, int32_t argc, int8_t **argv)
         } /** we have at least one opt value pair afterward */
         else if (!OSAL_STRCASECMP(opt, "--input-file") || !OSAL_STRCASECMP(opt, "-i"))
         {
-            int8_t *fn = *argv, *lang = NULL, *name = NULL, *enc_name = NULL;
+            int8_t *fn = *argv, *lang = NULL, *enc_name = NULL;
             ua = 0;
             ub = 0;
             ts = 0;
@@ -187,12 +178,6 @@ parse_cli(ema_mp4_ctrl_handle_t handle, int32_t argc, int8_t **argv)
                 if (!OSAL_STRCASECMP(opt, "--media-lang"))
                 {
                     lang  = argv[2];
-                    argc -= 2;
-                    argv += 2;
-                }
-                else if (!OSAL_STRCASECMP(opt, "--media-name"))
-                {
-                    name = argv[2];
                     argc -= 2;
                     argv += 2;
                 }
@@ -258,7 +243,7 @@ parse_cli(ema_mp4_ctrl_handle_t handle, int32_t argc, int8_t **argv)
                     break;
                 }
             }
-            ret = ema_mp4_mux_set_input(handle, fn, lang, name, enc_name, ts, ua, ub);
+            ret = ema_mp4_mux_set_input(handle, fn, lang, NULL, enc_name, ts, ua, ub);
         }
         else if (!OSAL_STRCASECMP(opt, "--output-file") || !OSAL_STRCASECMP(opt, "-o"))
         {
@@ -291,31 +276,19 @@ parse_cli(ema_mp4_ctrl_handle_t handle, int32_t argc, int8_t **argv)
         {
             ret = ema_mp4_mux_set_cbrand(handle, *argv);
         }
-		else if (!OSAL_STRCASECMP(opt, "--output-format"))
-
-        {
-
-            ret = ema_mp4_mux_set_output_format(handle, *argv);
-
-            if (ret != EMA_MP4_MUXED_OK)
-
-            {
-
-                msglog(NULL, MSGLOG_ERR, 
-
-                       "Error parsing command line: Unknown output format: %s \n\n",*argv);
-
-            }
-
+		else if (!OSAL_STRCASECMP(opt, "--output-format"))
+        {
+            ret = ema_mp4_mux_set_output_format(handle, *argv);
+            if (ret != EMA_MP4_MUXED_OK)
+            {
+                msglog(NULL, MSGLOG_ERR, 
+                       "Error parsing command line: Unknown output format: %s \n\n",*argv);
+            }
         }
-        else if (!OSAL_STRCASECMP(opt, "--mpeg4-max-frag-duration"))
-
-        {
-
-            OSAL_SSCANF(*argv, "%u", &ua);
-
-            ret = ema_mp4_mux_set_max_duration(handle, ua);
-
+        else if (!OSAL_STRCASECMP(opt, "--mpeg4-max-frag-duration"))
+        {
+            OSAL_SSCANF(*argv, "%u", &ua);
+            ret = ema_mp4_mux_set_max_duration(handle, ua);
         }
 		else if (!OSAL_STRCASECMP(opt, "--dv-profile"))
         {
@@ -341,10 +314,6 @@ parse_cli(ema_mp4_ctrl_handle_t handle, int32_t argc, int8_t **argv)
         {
             OSAL_SSCANF(*argv, "%u", &ua);
             ret = ema_mp4_mux_set_sampleentry_hvc1(handle, (int)ua);
-        }
-        else if (!OSAL_STRCASECMP(opt, "--locale"))
-        {
-            setlocale(LC_ALL, *argv);
         }
 
         else

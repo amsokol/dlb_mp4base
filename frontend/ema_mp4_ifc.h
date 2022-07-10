@@ -158,8 +158,8 @@ uint32_t ema_mp4_mux_start(ema_mp4_ctrl_handle_t handle);
 uint32_t ema_mp4_mux_set_input(ema_mp4_ctrl_handle_t handle, 
                           int8_t  *fn, 
                           int8_t  *lang, 
-                          int8_t* name,
-                          int8_t  *enc_name,
+                          int8_t  *name, 
+                          int8_t  *enc_name, 
                           uint32_t time_scale, 
                           uint32_t chunk_span_size, 
                           uint32_t tid);

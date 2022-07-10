@@ -1,0 +1,55 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'mp4muxer'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=mp4muxer",
+                    "--package=mp4muxer"
+                ],
+                "filter": {
+                    "name": "mp4muxer",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "--dv-profile",
+                "5",
+                "--output-file",
+                "../test/signals/7ch_ddp_25fps.mp4",
+                "--input-file",
+                "../test/signals/7ch_ddp_25fps_channel_id.ec3,lang=rus,name='Dub, Blu-ray (DN -31dB)'"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'mp4muxer'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=mp4muxer",
+                    "--package=mp4muxer"
+                ],
+                "filter": {
+                    "name": "mp4muxer",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
+/*
+--dv-profile 5 --output-file ../../../test/signals/7ch_ddp_25fps.mp4 --input-file ../../../test/signals/7ch_ddp_25fps_dialnorm.h264,name='12345' --input-file ../../../test/signals/7ch_ddp_25fps_channel_id.ec3,lang=rus,name='Dub, Кинопоиск HD'
+*/

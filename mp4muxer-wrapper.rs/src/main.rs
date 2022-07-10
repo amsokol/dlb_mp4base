@@ -1,11 +1,11 @@
 mod cli;
 mod mp4_muxer_lib;
-mod mp4muxer_types;
+mod mp4muxer_helpers;
 
 use crate::mp4_muxer_lib::{
     ema_mp4_mux_create_clang, ema_mp4_mux_destroy_clang, ema_mp4_mux_start_clang,
 };
-use crate::mp4muxer_types::ema_mp4_ctrl_handle_t;
+use crate::mp4muxer_helpers::{ema_mp4_ctrl_handle_t, error_by_code};
 use anyhow::{bail, Result};
 use cli::parse_cli;
 use std::ptr::null_mut;
@@ -36,7 +36,10 @@ fn ema_mp4_mux_create(handle: &mut ema_mp4_ctrl_handle_t) -> Result<()> {
     }
 
     if res != 0 {
-        bail!("Failed to create MP4 muxer with error code = {}", res);
+        bail!(
+            "Failed to create MP4 muxer with error: {}",
+            error_by_code(res)
+        );
     }
 
     Ok(())
@@ -50,7 +53,7 @@ fn ema_mp4_mux_start(handle: ema_mp4_ctrl_handle_t) -> Result<()> {
     }
 
     if res != 0 {
-        bail!("Muxing failed with error code = {}", res);
+        bail!("Muxing failed with error: {}", error_by_code(res));
     }
 
     Ok(())

@@ -6,7 +6,7 @@ use crate::mp4_muxer_lib::{
     ema_mp4_mux_set_output_format_clang, ema_mp4_mux_set_sampleentry_dvh1_clang,
     ema_mp4_mux_set_sampleentry_hvc1_clang, ema_mp4_mux_set_video_framerate_clang,
 };
-use crate::mp4muxer_types::ema_mp4_ctrl_handle_t;
+use crate::mp4muxer_helpers::{ema_mp4_ctrl_handle_t, error_by_code};
 use anyhow::{bail, Result};
 use clap::builder::TypedValueParser;
 use clap::{
@@ -100,7 +100,7 @@ struct Cli {
         ts=<timescale> - timescale integer value\n\
         fr=<framerate> - set framerate only for video such as 23.97 or 24000/1001\n\
         Example :\n\
-        --input-file video.hevc,fr=23.97 --input-file audio.ac3,lang=rus,name=\"Dub, Blu-ray\""
+        --input-file video.hevc,fr=23.97 --input-file audio.ac3,lang=rus,name=\"'Dub, Blu-ray'\""
     )]
     input_file: Vec<String>,
 }
@@ -346,7 +346,10 @@ fn ema_mp4_mux_set_video_framerate(
     }
 
     if res != 0 {
-        bail!("Failed to set video framerate with error code = {}", res);
+        bail!(
+            "Failed to set video framerate with error: {}",
+            error_by_code(res)
+        );
     }
 
     Ok(())
@@ -383,7 +386,10 @@ fn ema_mp4_mux_set_input(
     }
 
     if res != 0 {
-        bail!("Failed to set track input with error code = {}", res);
+        bail!(
+            "Failed to set track input with error: {}",
+            error_by_code(res)
+        );
     }
 
     Ok(())
@@ -426,7 +432,10 @@ fn ema_mp4_mux_set_output(
     }
 
     if res != 0 {
-        bail!("Failed to set output file with error code = {}", res);
+        bail!(
+            "Failed to set output file with error: {}",
+            error_by_code(res)
+        );
     }
 
     Ok(())
@@ -440,7 +449,7 @@ fn ema_mp4_mux_set_moov_timescale(handle: ema_mp4_ctrl_handle_t, timescale: u32)
     }
 
     if res != 0 {
-        bail!("Failed to set timescale with error code = {}", res);
+        bail!("Failed to set timescale with error: {}", error_by_code(res));
     }
 
     Ok(())
@@ -456,7 +465,10 @@ fn ema_mp4_mux_set_mbrand(handle: ema_mp4_ctrl_handle_t, mbrand: String) -> Resu
     }
 
     if res != 0 {
-        bail!("Failed to set mpeg4 brand with error code = {}", res);
+        bail!(
+            "Failed to set mpeg4 brand with error: {}",
+            error_by_code(res)
+        );
     }
 
     Ok(())
@@ -473,8 +485,8 @@ fn ema_mp4_mux_set_cbrand(handle: ema_mp4_ctrl_handle_t, cbrand: String) -> Resu
 
     if res != 0 {
         bail!(
-            "Failed to set mpeg4 compatibility brand with error code = {}",
-            res
+            "Failed to set mpeg4 compatibility brand with error: {}",
+            error_by_code(res)
         );
     }
 
@@ -491,7 +503,10 @@ fn ema_mp4_mux_set_output_format(handle: ema_mp4_ctrl_handle_t, outfm: String) -
     }
 
     if res != 0 {
-        bail!("Failed to set output format with error code = {}", res);
+        bail!(
+            "Failed to set output format with error: {}",
+            error_by_code(res)
+        );
     }
 
     Ok(())
@@ -506,8 +521,8 @@ fn ema_mp4_mux_set_max_duration(handle: ema_mp4_ctrl_handle_t, duration: u32) ->
 
     if res != 0 {
         bail!(
-            "Failed to set mpeg4 max fragment duration with error code = {}",
-            res
+            "Failed to set mpeg4 max fragment duration with error: {}",
+            error_by_code(res)
         );
     }
 
@@ -523,8 +538,8 @@ fn ema_mp4_mux_set_dv_profile(handle: ema_mp4_ctrl_handle_t, dv_profile: u8) -> 
 
     if res != 0 {
         bail!(
-            "Failed to set Dolby Vision profile with error code = {}",
-            res
+            "Failed to set Dolby Vision profile with error: {}",
+            error_by_code(res)
         );
     }
 
@@ -543,8 +558,8 @@ fn ema_mp4_mux_set_dv_bl_compatible_id(
 
     if res != 0 {
         bail!(
-            "Failed to set Dolby Vision profile compatible ID with error code = {}",
-            res
+            "Failed to set Dolby Vision profile compatible ID with error: {}",
+            error_by_code(res)
         );
     }
 
@@ -559,7 +574,10 @@ fn ema_mp4_mux_set_sampleentry_dvh1(handle: ema_mp4_ctrl_handle_t, es_idx: i32) 
     }
 
     if res != 0 {
-        bail!("Failed to set dvh1 track ID with error code = {}", res);
+        bail!(
+            "Failed to set dvh1 track ID with error: {}",
+            error_by_code(res)
+        );
     }
 
     Ok(())
@@ -573,7 +591,10 @@ fn ema_mp4_mux_set_sampleentry_hvc1(handle: ema_mp4_ctrl_handle_t, es_idx: i32) 
     }
 
     if res != 0 {
-        bail!("Failed to set hvc1 track ID with error code = {}", res);
+        bail!(
+            "Failed to set hvc1 track ID with error: {}",
+            error_by_code(res)
+        );
     }
 
     Ok(())

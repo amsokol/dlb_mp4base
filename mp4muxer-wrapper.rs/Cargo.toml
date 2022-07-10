@@ -1,11 +1,14 @@
 [package]
-name = "mp4muxer"
-version = "1.2.1"
+name = "mp4muxer2"
+authors = ["Aleksandr Sokolovskii <amsokol+github@gmail.com>"]
+repository = "https://github.com/amsokol/dlb_mp4base"
+description = "MP4 muxer based on https://github.com/DolbyLaboratories/dlb_mp4base great library"
+license = "MIT"
+version = "2.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 anyhow = { version = "1" }
-chrono = { version = "0" }
 clap = { version = "3", features = ["derive", "suggestions", "color", "cargo"] }

@@ -252,9 +252,20 @@ pub fn parse_cli(handle: *mut c_void) -> Result<()> {
         match InputFile::try_parse_from(args) {
             Err(_) => bail!("Invalid input file arguments: {:?}", f),
             Ok(file) => {
+                {
+                    if let Err(err) = OpenOptions::new().read(true).open(&file.input) {
+                        bail!(
+                            "Failed to open input file \"{}\": {}",
+                            file.input.to_str().unwrap_or("<unknown file>"),
+                            err
+                        );
+                    }
+                }
+
                 if let Some(frame_rate) = file.input_video_frame_rate {
                     ema_mp4_mux_set_video_framerate(handle, frame_rate.nome, frame_rate.deno)?;
                 }
+
                 ema_mp4_mux_set_input(
                     handle,
                     file.input.into_os_string().into_string().unwrap(),

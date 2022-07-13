@@ -271,11 +271,7 @@ pub fn parse_cli(handle: *mut c_void) -> Result<()> {
             Err(err) => {
                 let err = err.to_string();
                 let ss: Vec<&str> = err.split('\n').collect();
-                bail!(
-                    "Invalid input file arguments: {}\n{}",
-                    f,
-                    if ss.len() > 1 { ss[0] } else { err.as_str() }
-                )
+                bail!("Invalid input file arguments: {}\n{}", f, ss[0])
             }
             Ok(file) => {
                 {

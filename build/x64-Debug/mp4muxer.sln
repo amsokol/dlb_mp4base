@@ -1,0 +1,35 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ALL_BUILD", "ALL_BUILD.vcxproj", "{549474E3-A2A9-30A2-8660-2EF81FA0BF79}"
+	ProjectSection(ProjectDependencies) = postProject
+		{5BEBD1F6-C2E2-328B-B733-EB52B9BE5FEE} = {5BEBD1F6-C2E2-328B-B733-EB52B9BE5FEE}
+		{2E3AA16E-73CE-3B28-9B60-3DCB6F4291C4} = {2E3AA16E-73CE-3B28-9B60-3DCB6F4291C4}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ZERO_CHECK", "ZERO_CHECK.vcxproj", "{5BEBD1F6-C2E2-328B-B733-EB52B9BE5FEE}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mp4muxer", "mp4muxer.vcxproj", "{2E3AA16E-73CE-3B28-9B60-3DCB6F4291C4}"
+	ProjectSection(ProjectDependencies) = postProject
+		{5BEBD1F6-C2E2-328B-B733-EB52B9BE5FEE} = {5BEBD1F6-C2E2-328B-B733-EB52B9BE5FEE}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{549474E3-A2A9-30A2-8660-2EF81FA0BF79}.Debug|x64.ActiveCfg = Debug|x64
+		{5BEBD1F6-C2E2-328B-B733-EB52B9BE5FEE}.Debug|x64.ActiveCfg = Debug|x64
+		{5BEBD1F6-C2E2-328B-B733-EB52B9BE5FEE}.Debug|x64.Build.0 = Debug|x64
+		{2E3AA16E-73CE-3B28-9B60-3DCB6F4291C4}.Debug|x64.ActiveCfg = Debug|x64
+		{2E3AA16E-73CE-3B28-9B60-3DCB6F4291C4}.Debug|x64.Build.0 = Debug|x64
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BC50E36A-4907-32BA-810D-7F56965A6B97}
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

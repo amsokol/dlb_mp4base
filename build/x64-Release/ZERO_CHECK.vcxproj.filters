@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\amsokol\Coding\github.com\amsokol\dlb_mp4base\build\x64-Release\CMakeFiles\6f2e4ea0d3b3d8e7e85df513a749d68a\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{A3EC3849-7F7B-39A5-A366-93DF9301ADEE}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

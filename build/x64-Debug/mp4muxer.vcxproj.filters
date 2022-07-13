@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\amsokol\Coding\github.com\amsokol\dlb_mp4base\frontend\mp4_muxer_lib.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\amsokol\Coding\github.com\amsokol\dlb_mp4base\frontend\ema_mp4_mux_api.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\amsokol\Coding\github.com\amsokol\dlb_mp4base\src\mp4_isom.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\amsokol\Coding\github.com\amsokol\dlb_mp4base\src\mp4_muxer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\amsokol\Coding\github.com\amsokol\dlb_mp4base\src\mp4_stream.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\amsokol\Coding\github.com\amsokol\dlb_mp4base\src\esparser\dsi.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\amsokol\Coding\github.com\amsokol\dlb_mp4base\src\esparser\parser_aac.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\amsokol\Coding\github.com\amsokol\dlb_mp4base\src\esparser\parser_ac4.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\amsokol\Coding\github.com\amsokol\dlb_mp4base\src\esparser\parser_avc_dec.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\amsokol\Coding\github.com\amsokol\dlb_mp4base\src\esparser\parser_avc_dpb.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\amsokol\Coding\github.com\amsokol\dlb_mp4base\src\esparser\parser_avc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\amsokol\Coding\github.com\amsokol\dlb_mp4base\src\esparser\parser_dd.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\amsokol\Coding\github.com\amsokol\dlb_mp4base\src\esparser\parser_hevc_dec.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\amsokol\Coding\github.com\amsokol\dlb_mp4base\src\esparser\parser_hevc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\amsokol\Coding\github.com\amsokol\dlb_mp4base\src\esparser\parser.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\amsokol\Coding\github.com\amsokol\dlb_mp4base\src\util\io_base.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\amsokol\Coding\github.com\amsokol\dlb_mp4base\src\util\io_buffer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\amsokol\Coding\github.com\amsokol\dlb_mp4base\src\util\io_file.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\amsokol\Coding\github.com\amsokol\dlb_mp4base\src\util\list_itr.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\amsokol\Coding\github.com\amsokol\dlb_mp4base\src\util\msg_log.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\amsokol\Coding\github.com\amsokol\dlb_mp4base\src\util\registry.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\amsokol\Coding\github.com\amsokol\dlb_mp4base\src\util\utils.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\amsokol\Coding\github.com\amsokol\dlb_mp4base\make\mp4muxer.library\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{E9546A0F-AD88-3819-8A6D-9A3E1FA05AAC}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,3 @@
+C:/Users/amsokol/Coding/github.com/amsokol/dlb_mp4base/build/x64-Release/CMakeFiles/mp4muxer.dir
+C:/Users/amsokol/Coding/github.com/amsokol/dlb_mp4base/build/x64-Release/CMakeFiles/ALL_BUILD.dir
+C:/Users/amsokol/Coding/github.com/amsokol/dlb_mp4base/build/x64-Release/CMakeFiles/ZERO_CHECK.dir

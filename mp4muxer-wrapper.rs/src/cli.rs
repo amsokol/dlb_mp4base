@@ -149,43 +149,61 @@ impl TypedValueParser for FramerateValueParser {
         &self,
         _cmd: &Command,
         _arg: Option<&Arg>,
-        value: &std::ffi::OsStr,
+        raw_value: &std::ffi::OsStr,
     ) -> Result<Self::Value, Error> {
-        let value = value
-            .to_str()
-            .ok_or_else(|| Error::raw(ErrorKind::InvalidUtf8, "invalid framerate value"))?;
+        let value = raw_value.to_str().ok_or_else(|| {
+            Error::raw(
+                ErrorKind::InvalidUtf8,
+                format!(
+                    "Invalid value \"{}\" for framerate",
+                    raw_value.to_string_lossy().into_owned(),
+                ),
+            )
+        })?;
 
         let values: Vec<&str> = value.split('/').collect();
 
         if values.len() == 2 {
-            if let Ok(nome) = values[0].parse::<u32>() {
-                if let Ok(deno) = values[1].parse::<u32>() {
-                    return Ok(Framerate { nome, deno });
-                } else {
-                    return Err(Error::raw(
-                        ErrorKind::InvalidValue,
-                        "invalid deno of framerate value",
-                    ));
-                }
-            } else {
-                return Err(Error::raw(
+            let nome = values[0].parse::<u32>().map_err(|err| {
+                Error::raw(
                     ErrorKind::InvalidValue,
-                    "invalid nome of framerate value",
-                ));
-            }
+                    format!(
+                        "Invalid 'nome' value of \"{}\" ('nome/deno' format) for framerate: {}",
+                        raw_value.to_string_lossy().into_owned(),
+                        err
+                    ),
+                )
+            })?;
+
+            let deno = values[1].parse::<u32>().map_err(|err| {
+                Error::raw(
+                    ErrorKind::InvalidValue,
+                    format!(
+                        "Invalid 'deno' value of \"{}\" ('nome/deno' format) for framerate: {}",
+                        raw_value.to_string_lossy().into_owned(),
+                        err
+                    ),
+                )
+            })?;
+
+            return Ok(Framerate { nome, deno });
         }
 
-        if let Ok(framerate) = value.parse::<f64>() {
-            return Ok(Framerate {
-                nome: (framerate * 1000.0) as u32,
-                deno: 1000,
-            });
-        }
+        let value = value.parse::<f64>().map_err(|err| {
+            Error::raw(
+                ErrorKind::InvalidValue,
+                format!(
+                    "Invalid value \"{}\" for framerate: {}",
+                    raw_value.to_string_lossy().into_owned(),
+                    err
+                ),
+            )
+        })?;
 
-        Err(Error::raw(
-            ErrorKind::InvalidValue,
-            "invalid framerate value",
-        ))
+        Ok(Framerate {
+            nome: (value * 1000.0) as u32,
+            deno: 1000,
+        })
     }
 }
 
@@ -250,7 +268,15 @@ pub fn parse_cli(handle: *mut c_void) -> Result<()> {
         args.insert(0, String::from("inputfile"));
 
         match InputFile::try_parse_from(args) {
-            Err(_) => bail!("Invalid input file arguments: {:?}", f),
+            Err(err) => {
+                let err = err.to_string();
+                let ss: Vec<&str> = err.split('\n').collect();
+                bail!(
+                    "Invalid input file arguments: {}\n{}",
+                    f,
+                    if ss.len() > 1 { ss[0] } else { err.as_str() }
+                )
+            }
             Ok(file) => {
                 {
                     if let Err(err) = OpenOptions::new().read(true).open(&file.input) {

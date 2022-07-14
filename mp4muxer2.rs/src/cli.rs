@@ -388,6 +388,7 @@ fn ema_mp4_mux_set_video_framerate(
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 fn ema_mp4_mux_set_input(
     handle: ema_mp4_ctrl_handle_t,
     filename: String,

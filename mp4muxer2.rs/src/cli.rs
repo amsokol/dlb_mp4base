@@ -7,7 +7,7 @@ use crate::mp4_muxer_lib::{
     ema_mp4_mux_set_sampleentry_hvc1_clang, ema_mp4_mux_set_video_framerate_clang,
 };
 use crate::mp4muxer_helpers::{ema_mp4_ctrl_handle_t, error_by_code};
-use anyhow::{bail, Result};
+use anyhow::{anyhow, bail, Result};
 use clap::{crate_authors, crate_description, crate_name, crate_version, AppSettings, Parser};
 use std::ffi::CString;
 use std::fs::OpenOptions;
@@ -152,14 +152,10 @@ fn parse_framerate(
 }
 
 fn media_lang_validator(v: &str) -> Result<()> {
-    if v.len() != 3 {
-        bail!(
-            "Input lang code '{}' is not correct, must be 3 characters long e.g. 'eng'",
-            v
-        )
+    match v.len() {
+        3 => Ok(()),
+        _ => Err(anyhow!("must be 3 characters long e.g. 'eng'")),
     }
-
-    Ok(())
 }
 
 fn to_clap_args(string: &str) -> Vec<String> {

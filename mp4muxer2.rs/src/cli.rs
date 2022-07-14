@@ -8,11 +8,7 @@ use crate::mp4_muxer_lib::{
 };
 use crate::mp4muxer_helpers::{ema_mp4_ctrl_handle_t, error_by_code};
 use anyhow::{bail, Result};
-use clap::builder::TypedValueParser;
-use clap::{
-    crate_authors, crate_description, crate_name, crate_version, AppSettings, Arg, Command, Error,
-    ErrorKind, Parser,
-};
+use clap::{crate_authors, crate_description, crate_name, crate_version, AppSettings, Parser};
 use std::ffi::CString;
 use std::fs::OpenOptions;
 use std::os::raw::c_void;
@@ -129,7 +125,7 @@ struct InputFile {
     media_timescale: Option<u32>,
 
     /// Set framerate only for video such as 23.97 or 30000/1001
-    #[clap(long = "fr", value_name = "framerate", value_parser=FramerateValueParser::new())]
+    #[clap(long = "fr", value_name = "framerate", value_parser=parse_framerate)]
     input_video_frame_rate: Option<Framerate>,
 }
 
@@ -139,79 +135,20 @@ struct Framerate {
     deno: u32,
 }
 
-#[derive(Clone)]
-struct FramerateValueParser {}
-
-impl TypedValueParser for FramerateValueParser {
-    type Value = Framerate;
-
-    fn parse_ref(
-        &self,
-        _cmd: &Command,
-        _arg: Option<&Arg>,
-        raw_value: &std::ffi::OsStr,
-    ) -> Result<Self::Value, Error> {
-        let value = raw_value.to_str().ok_or_else(|| {
-            Error::raw(
-                ErrorKind::InvalidUtf8,
-                format!(
-                    "Invalid value \"{}\" for framerate",
-                    raw_value.to_string_lossy().into_owned(),
-                ),
-            )
-        })?;
-
-        let values: Vec<&str> = value.split('/').collect();
-
-        if values.len() == 2 {
-            let nome = values[0].parse::<u32>().map_err(|err| {
-                Error::raw(
-                    ErrorKind::InvalidValue,
-                    format!(
-                        "Invalid 'nome' value of \"{}\" ('nome/deno' format) for framerate: {}",
-                        raw_value.to_string_lossy().into_owned(),
-                        err
-                    ),
-                )
-            })?;
-
-            let deno = values[1].parse::<u32>().map_err(|err| {
-                Error::raw(
-                    ErrorKind::InvalidValue,
-                    format!(
-                        "Invalid 'deno' value of \"{}\" ('nome/deno' format) for framerate: {}",
-                        raw_value.to_string_lossy().into_owned(),
-                        err
-                    ),
-                )
-            })?;
-
-            return Ok(Framerate { nome, deno });
-        }
-
-        let value = value.parse::<f64>().map_err(|err| {
-            Error::raw(
-                ErrorKind::InvalidValue,
-                format!(
-                    "Invalid value \"{}\" for framerate: {}",
-                    raw_value.to_string_lossy().into_owned(),
-                    err
-                ),
-            )
-        })?;
-
-        Ok(Framerate {
-            nome: (value * 1000.0) as u32,
+fn parse_framerate(
+    value: &str,
+) -> Result<Framerate, Box<dyn std::error::Error + Send + Sync + 'static>> {
+    let values: Vec<&str> = value.split('/').collect();
+    Ok(match values.len() {
+        2 => Framerate {
+            nome: values[0].parse::<u32>()?,
+            deno: values[1].parse::<u32>()?,
+        },
+        _ => Framerate {
+            nome: (value.parse::<f64>()? * 1000.0) as u32,
             deno: 1000,
-        })
-    }
-}
-
-impl FramerateValueParser {
-    /// Parse bool-like string values, everything else is `true`
-    pub fn new() -> Self {
-        Self {}
-    }
+        },
+    })
 }
 
 fn media_lang_validator(v: &str) -> Result<()> {

@@ -138,16 +138,16 @@ struct Framerate {
 fn parse_framerate(
     value: &str,
 ) -> Result<Framerate, Box<dyn std::error::Error + Send + Sync + 'static>> {
-    let values: Vec<&str> = value.split('/').collect();
-    Ok(match values.len() {
-        2 => Framerate {
-            nome: values[0].parse::<u32>()?,
-            deno: values[1].parse::<u32>()?,
-        },
-        _ => Framerate {
+    Ok(if let Some((nome, deno)) = value.split_once('/') {
+        Framerate {
+            nome: nome.parse::<u32>()?,
+            deno: deno.parse::<u32>()?,
+        }
+    } else {
+        Framerate {
             nome: (value.parse::<f64>()? * 1000.0) as u32,
             deno: 1000,
-        },
+        }
     })
 }
 

@@ -216,7 +216,10 @@ impl FramerateValueParser {
 
 fn media_lang_validator(v: &str) -> Result<()> {
     if v.len() != 3 {
-        bail!("Input lang code '{}' is not correct", v)
+        bail!(
+            "Input lang code '{}' is not correct, must be 3 characters long e.g. 'eng'",
+            v
+        )
     }
 
     Ok(())

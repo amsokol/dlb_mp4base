@@ -1,4 +1,5 @@
 mod cli;
+mod cli_input_file;
 mod mp4_muxer_lib;
 mod mp4muxer_helpers;
 

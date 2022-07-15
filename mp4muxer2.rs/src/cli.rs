@@ -1,3 +1,4 @@
+use crate::cli_input_file::{parse_input_file, InputFile};
 use crate::mp4_muxer_lib::{
     ema_mp4_mux_consistency_check_clang, ema_mp4_mux_set_cbrand_clang,
     ema_mp4_mux_set_dv_bl_compatible_id_clang, ema_mp4_mux_set_dv_profile_clang,
@@ -7,12 +8,36 @@ use crate::mp4_muxer_lib::{
     ema_mp4_mux_set_sampleentry_hvc1_clang, ema_mp4_mux_set_video_framerate_clang,
 };
 use crate::mp4muxer_helpers::{ema_mp4_ctrl_handle_t, error_by_code};
-use anyhow::{anyhow, bail, Result};
+use anyhow::{bail, Result};
 use clap::{crate_authors, crate_description, crate_name, crate_version, AppSettings, Parser};
 use std::ffi::CString;
 use std::fs::OpenOptions;
 use std::os::raw::c_void;
 use std::path::PathBuf;
+
+const EXAMPLES: &str = "
+EXAMPLES:
+    To create an audio-only .mp4 file with EC-3 audio:
+        mp4muxer2 -o output.mp4 -i audio.ec3 --mpeg4-comp-brand mp42,iso6,isom,msdh,dby1
+    To multiplex AC-4 audio and H.264 video:
+        mp4muxer2 -o output.mp4 -i audio.ac4 -i video.h264 --mpeg4-comp-brand mp42,iso6,isom,msdh,dby1
+
+    To multiplex Dolby vision BL+EL+RPU file into a .mp4 file with EC-3 audio track:
+        mp4muxer2 -i ves_bl_el_rpu.265 -i audio.ec3 -o output.mp4 --dv-profile 8 --dv-bl-compatible-id 2 --mpeg4-comp-brand mp42,iso6,isom,msdh,dby1 --overwrite
+        Note: For the Dolby vision profile 8, dv-bl-compatible-id is necessary.
+
+    To multiplex Dolby vision profile 8.4 file into a .mp4 file with sample entry name as 'hvc1':
+        mp4muxer2 -i ves_8.4.265 -o output.mp4 --hvc1flag 0 --dv-profile 8 --dv-bl-compatible-id 4 --mpeg4-comp-brand mp42,iso6,isom,msdh,dby1 --overwrite
+        Note: For the Dolby vision profile 8, dv-bl-compatible-id is necessary.
+
+    To multiplex Dolby vision BL+EL+RPU file into a .mp4 file with EC-3 audio track, set framerate, track language and name:
+        mp4muxer2 -i ves_bl_el_rpu.265,name=\"'Cool video'\",fr=24000/1001 -i audio.ec3,lang=rus,name=\"'Dub, Blu-Ray'\" -o output.mp4 --dv-profile 8 --dv-bl-compatible-id 2 --mpeg4-comp-brand mp42,iso6,isom,msdh,dby1 --overwrite
+        Note: For the Dolby vision profile 8, dv-bl-compatible-id is necessary.
+
+    foo --hello
+        Example :
+        --input-file video.hevc,fr=23.97 --input-file audio.ac3,lang=rus,name=\"'Dub, Blu-ray'\"
+";
 
 #[derive(Parser)]
 #[clap(name = crate_name!())]
@@ -20,6 +45,7 @@ use std::path::PathBuf;
 #[clap(version = crate_version!())]
 #[clap(about = crate_description!(), long_about = None)]
 #[clap(global_setting(AppSettings::DeriveDisplayOrder))]
+#[clap(after_help = EXAMPLES)]
 struct Cli {
     /// Overwrites the existing output .mp4 file if there is one
     #[clap(long)]
@@ -79,163 +105,57 @@ struct Cli {
     hvc1flag: Option<i32>,
 
     /// Output .mp4 file name
-    #[clap(long, value_name = "FILE", parse(from_os_str))]
+    #[clap(long, short, value_name = "FILE", parse(from_os_str))]
     output_file: PathBuf,
 
     #[clap(
         long,
-        value_name = "one or more input files with options",
+        short,
+        value_name = "FILE(s)",
         multiple_occurrences = true,
         required = true,
-        // allow_hyphen_values = true,
+        help_heading = Some("INPUT FILES"),
         help = "Add elementary streams to MP4 container.\n\
         Comma delimited parameters:\n\
         <file> - file to add (supports H264, H265, AC3, EC3, and AC4). Mandatory.\n\
         lang=<language> - media language, e.g. 'rus'\n\
         name=<name> - media name, e.g. 'Dub, Blu-ray'\n\
         ts=<timescale> - timescale integer value\n\
-        fr=<framerate> - set framerate only for video such as 23.97 or 24000/1001\n\
-        Example :\n\
-        --input-file video.hevc,fr=23.97 --input-file audio.ac3,lang=rus,name=\"'Dub, Blu-ray'\""
+        fr=<framerate> - set framerate only for video such as 23.97 or 24000/1001",
+        value_parser=parse_input_file
     )]
-    input_file: Vec<String>,
-}
-
-#[derive(Parser, Debug)]
-struct InputFile {
-    /// Input track file name
-    #[clap(value_name = "FILE", parse(from_os_str))]
-    input: PathBuf,
-
-    /// Media language, e.g. 'rus'
-    #[clap(long="lang", value_name = "language", validator=media_lang_validator)]
-    media_lang: Option<String>,
-
-    /// Media name, e.g. 'Dub, Blu-ray'
-    #[clap(
-        long = "name",
-        value_name = "name",
-        multiple_values = false,
-        use_value_delimiter = false
-    )]
-    media_name: Option<String>,
-
-    /// Timescale
-    #[clap(long = "ts", value_name = "timescale")]
-    media_timescale: Option<u32>,
-
-    /// Set framerate only for video such as 23.97 or 30000/1001
-    #[clap(long = "fr", value_name = "framerate", value_parser=parse_framerate)]
-    input_video_frame_rate: Option<Framerate>,
-}
-
-#[derive(Clone, Debug)]
-struct Framerate {
-    nome: u32,
-    deno: u32,
-}
-
-fn parse_framerate(
-    value: &str,
-) -> Result<Framerate, Box<dyn std::error::Error + Send + Sync + 'static>> {
-    Ok(if let Some((nome, deno)) = value.split_once('/') {
-        Framerate {
-            nome: nome.parse::<u32>()?,
-            deno: deno.parse::<u32>()?,
-        }
-    } else {
-        Framerate {
-            nome: (value.parse::<f64>()? * 1000.0) as u32,
-            deno: 1000,
-        }
-    })
-}
-
-fn media_lang_validator(v: &str) -> Result<()> {
-    match v.len() {
-        3 => Ok(()),
-        _ => Err(anyhow!("must be 3 characters long e.g. 'eng'")),
-    }
-}
-
-fn to_clap_args(string: &str) -> Vec<String> {
-    let mut single_quoted_started = false;
-    let mut double_quoted_started = false;
-
-    // split
-    let words: Vec<&str> = string
-        .split(|c: char| {
-            match c {
-                '\'' => {
-                    if !double_quoted_started {
-                        single_quoted_started = !single_quoted_started;
-                    }
-                }
-                '\"' => {
-                    if !single_quoted_started {
-                        double_quoted_started = !double_quoted_started;
-                    }
-                }
-                ',' => return !single_quoted_started && !double_quoted_started,
-                _ => {}
-            }
-            false
-        })
-        .collect();
-
-    // add '--'
-    let mut args = Vec::with_capacity(words.len());
-    args.push(String::from(words[0]));
-    if words.len() > 1 {
-        for a in words[1..].iter() {
-            args.push("--".to_string() + a);
-        }
-    }
-
-    args
+    input_file: Vec<InputFile>,
 }
 
 pub fn parse_cli(handle: *mut c_void) -> Result<()> {
     let cli = Cli::parse();
 
     // --input-file
-    for f in cli.input_file {
-        let mut args = to_clap_args(f.as_str());
-        args.insert(0, String::from("inputfile"));
-
-        match InputFile::try_parse_from(args) {
-            Err(err) => {
-                let err = err.to_string();
-                let ss: Vec<&str> = err.split('\n').collect();
-                bail!("Invalid input file arguments: {}\n{}", f, ss[0])
-            }
-            Ok(file) => {
-                {
-                    if let Err(err) = OpenOptions::new().read(true).open(&file.input) {
-                        bail!(
-                            "Failed to open input file \"{}\": {}",
-                            file.input.to_str().unwrap_or("<unknown file>"),
-                            err
-                        );
-                    }
-                }
-
-                if let Some(frame_rate) = file.input_video_frame_rate {
-                    ema_mp4_mux_set_video_framerate(handle, frame_rate.nome, frame_rate.deno)?;
-                }
-
-                ema_mp4_mux_set_input(
-                    handle,
-                    file.input.into_os_string().into_string().unwrap(),
-                    file.media_lang,
-                    file.media_name,
-                    None,
-                    file.media_timescale.unwrap_or(0),
-                    0,
-                    0,
-                )?;
+    for file in cli.input_file {
+        {
+            if let Err(err) = OpenOptions::new().read(true).open(&file.input) {
+                bail!(
+                    "Failed to open input file \"{}\": {}",
+                    file.input.to_str().unwrap_or("<unknown file>"),
+                    err
+                );
             }
         }
+
+        if let Some(frame_rate) = file.input_video_frame_rate {
+            ema_mp4_mux_set_video_framerate(handle, frame_rate.nome, frame_rate.deno)?;
+        }
+
+        ema_mp4_mux_set_input(
+            handle,
+            file.input.into_os_string().into_string().unwrap(),
+            file.media_lang,
+            file.media_name,
+            None,
+            file.media_timescale.unwrap_or(0),
+            0,
+            0,
+        )?;
     }
 
     /* output file overwrite check */

@@ -11,11 +11,11 @@
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=mp4muxer",
-                    "--package=mp4muxer"
+                    "--bin=mp4muxer2",
+                    "--package=mp4muxer2"
                 ],
                 "filter": {
-                    "name": "mp4muxer",
+                    "name": "mp4muxer2",
                     "kind": "bin"
                 }
             },
@@ -37,11 +37,11 @@
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=mp4muxer",
-                    "--package=mp4muxer"
+                    "--bin=mp4muxer2",
+                    "--package=mp4muxer2"
                 ],
                 "filter": {
-                    "name": "mp4muxer",
+                    "name": "mp4muxer2",
                     "kind": "bin"
                 }
             },
@@ -50,6 +50,3 @@
         }
     ]
 }
-/*
---dv-profile 5 --output-file ../../../test/signals/7ch_ddp_25fps.mp4 --input-file ../../../test/signals/7ch_ddp_25fps_dialnorm.h264,name='12345' --input-file ../../../test/signals/7ch_ddp_25fps_channel_id.ec3,lang=rus,name='Dub, Кинопоиск HD'
-*/

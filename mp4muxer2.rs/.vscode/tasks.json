@@ -10,7 +10,7 @@
             "args": [
                 "mp4_muxer_lib.h",
                 "--output",
-                "${workspaceFolder}/src/mp4_muxer_lib.rs",
+                "${workspaceFolder}/src/mp4.rs",
             ],
             "options": {
                 "cwd": "${workspaceFolder}/../frontend"

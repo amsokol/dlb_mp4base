@@ -1,13 +1,5 @@
 use crate::cli_input_file::{parse_input_file, InputFile};
-use crate::mp4_muxer_lib::{
-    ema_mp4_mux_consistency_check_clang, ema_mp4_mux_set_cbrand_clang,
-    ema_mp4_mux_set_dv_bl_compatible_id_clang, ema_mp4_mux_set_dv_profile_clang,
-    ema_mp4_mux_set_input_clang, ema_mp4_mux_set_max_duration_clang, ema_mp4_mux_set_mbrand_clang,
-    ema_mp4_mux_set_moov_timescale_clang, ema_mp4_mux_set_output_clang,
-    ema_mp4_mux_set_output_format_clang, ema_mp4_mux_set_sampleentry_dvh1_clang,
-    ema_mp4_mux_set_sampleentry_hvc1_clang, ema_mp4_mux_set_video_framerate_clang,
-};
-use crate::mp4muxer_helpers::{ema_mp4_ctrl_handle_t, error_by_code};
+use crate::mp4_helpers::{ema_mp4_ctrl_handle_t, error_by_code};
 use anyhow::{bail, Result};
 use clap::{crate_authors, crate_description, crate_name, crate_version, AppSettings, Parser};
 use std::ffi::CString;
@@ -231,7 +223,7 @@ fn ema_mp4_mux_set_video_framerate(
     let res;
 
     unsafe {
-        res = ema_mp4_mux_set_video_framerate_clang(handle, nome, deno);
+        res = crate::mp4::ema_mp4_mux_set_video_framerate_clang(handle, nome, deno);
     }
 
     if res != 0 {
@@ -263,7 +255,7 @@ fn ema_mp4_mux_set_input(
     let enc_name = CString::new(enc_name.unwrap_or_default()).unwrap();
 
     unsafe {
-        res = ema_mp4_mux_set_input_clang(
+        res = crate::mp4::ema_mp4_mux_set_input_clang(
             handle,
             filename.as_ptr(),
             lang.as_ptr(),
@@ -309,7 +301,7 @@ fn ema_mp4_mux_set_output(
     let filename = CString::new(filename).unwrap();
 
     unsafe {
-        res = ema_mp4_mux_set_output_clang(handle, buf_out, filename.as_ptr());
+        res = crate::mp4::ema_mp4_mux_set_output_clang(handle, buf_out, filename.as_ptr());
     }
 
     if res != 0 {
@@ -326,7 +318,7 @@ fn ema_mp4_mux_set_moov_timescale(handle: ema_mp4_ctrl_handle_t, timescale: u32)
     let res;
 
     unsafe {
-        res = ema_mp4_mux_set_moov_timescale_clang(handle, timescale);
+        res = crate::mp4::ema_mp4_mux_set_moov_timescale_clang(handle, timescale);
     }
 
     if res != 0 {
@@ -342,7 +334,7 @@ fn ema_mp4_mux_set_mbrand(handle: ema_mp4_ctrl_handle_t, mbrand: String) -> Resu
     let mbrand = CString::new(mbrand).unwrap();
 
     unsafe {
-        res = ema_mp4_mux_set_mbrand_clang(handle, mbrand.as_ptr());
+        res = crate::mp4::ema_mp4_mux_set_mbrand_clang(handle, mbrand.as_ptr());
     }
 
     if res != 0 {
@@ -361,7 +353,7 @@ fn ema_mp4_mux_set_cbrand(handle: ema_mp4_ctrl_handle_t, cbrand: String) -> Resu
     let cbrand = CString::new(cbrand).unwrap();
 
     unsafe {
-        res = ema_mp4_mux_set_cbrand_clang(handle, cbrand.as_ptr());
+        res = crate::mp4::ema_mp4_mux_set_cbrand_clang(handle, cbrand.as_ptr());
     }
 
     if res != 0 {
@@ -380,7 +372,7 @@ fn ema_mp4_mux_set_output_format(handle: ema_mp4_ctrl_handle_t, outfm: String) -
     let outfm = CString::new(outfm).unwrap();
 
     unsafe {
-        res = ema_mp4_mux_set_output_format_clang(handle, outfm.as_ptr());
+        res = crate::mp4::ema_mp4_mux_set_output_format_clang(handle, outfm.as_ptr());
     }
 
     if res != 0 {
@@ -397,7 +389,7 @@ fn ema_mp4_mux_set_max_duration(handle: ema_mp4_ctrl_handle_t, duration: u32) ->
     let res;
 
     unsafe {
-        res = ema_mp4_mux_set_max_duration_clang(handle, duration);
+        res = crate::mp4::ema_mp4_mux_set_max_duration_clang(handle, duration);
     }
 
     if res != 0 {
@@ -414,7 +406,7 @@ fn ema_mp4_mux_set_dv_profile(handle: ema_mp4_ctrl_handle_t, dv_profile: u8) -> 
     let res;
 
     unsafe {
-        res = ema_mp4_mux_set_dv_profile_clang(handle, dv_profile as u32);
+        res = crate::mp4::ema_mp4_mux_set_dv_profile_clang(handle, dv_profile as u32);
     }
 
     if res != 0 {
@@ -434,7 +426,7 @@ fn ema_mp4_mux_set_dv_bl_compatible_id(
     let res;
 
     unsafe {
-        res = ema_mp4_mux_set_dv_bl_compatible_id_clang(handle, compatible_id as i32);
+        res = crate::mp4::ema_mp4_mux_set_dv_bl_compatible_id_clang(handle, compatible_id as i32);
     }
 
     if res != 0 {
@@ -451,7 +443,7 @@ fn ema_mp4_mux_set_sampleentry_dvh1(handle: ema_mp4_ctrl_handle_t, es_idx: i32) 
     let res;
 
     unsafe {
-        res = ema_mp4_mux_set_sampleentry_dvh1_clang(handle, es_idx);
+        res = crate::mp4::ema_mp4_mux_set_sampleentry_dvh1_clang(handle, es_idx);
     }
 
     if res != 0 {
@@ -468,7 +460,7 @@ fn ema_mp4_mux_set_sampleentry_hvc1(handle: ema_mp4_ctrl_handle_t, es_idx: i32) 
     let res;
 
     unsafe {
-        res = ema_mp4_mux_set_sampleentry_hvc1_clang(handle, es_idx);
+        res = crate::mp4::ema_mp4_mux_set_sampleentry_hvc1_clang(handle, es_idx);
     }
 
     if res != 0 {
@@ -483,6 +475,6 @@ fn ema_mp4_mux_set_sampleentry_hvc1(handle: ema_mp4_ctrl_handle_t, es_idx: i32) 
 
 fn ema_mp4_mux_consistency_check(handle: ema_mp4_ctrl_handle_t) {
     unsafe {
-        ema_mp4_mux_consistency_check_clang(handle);
+        crate::mp4::ema_mp4_mux_consistency_check_clang(handle);
     }
 }

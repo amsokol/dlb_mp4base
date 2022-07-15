@@ -39,42 +39,6 @@ pub fn parse_input_file(
     Ok(InputFile::try_parse_from(args)?)
 }
 
-/*
-        match InputFile::try_parse_from(args) {
-            Err(err) => {
-                let err = err.to_string();
-                let ss: Vec<&str> = err.split('\n').collect();
-                bail!("Invalid input file arguments: {}\n{}", f, ss[0])
-            }
-            Ok(file) => {
-                {
-                    if let Err(err) = OpenOptions::new().read(true).open(&file.input) {
-                        bail!(
-                            "Failed to open input file \"{}\": {}",
-                            file.input.to_str().unwrap_or("<unknown file>"),
-                            err
-                        );
-                    }
-                }
-
-                if let Some(frame_rate) = file.input_video_frame_rate {
-                    ema_mp4_mux_set_video_framerate(handle, frame_rate.nome, frame_rate.deno)?;
-                }
-
-                ema_mp4_mux_set_input(
-                    handle,
-                    file.input.into_os_string().into_string().unwrap(),
-                    file.media_lang,
-                    file.media_name,
-                    None,
-                    file.media_timescale.unwrap_or(0),
-                    0,
-                    0,
-                )?;
-            }
-        }
-*/
-
 fn to_clap_args(string: &str) -> Vec<String> {
     let mut single_quoted_started = false;
     let mut double_quoted_started = false;

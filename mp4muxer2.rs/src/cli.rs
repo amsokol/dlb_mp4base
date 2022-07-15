@@ -365,24 +365,15 @@ fn ema_mp4_mux_set_input(
     Ok(())
 }
 
-fn normalize_media_name(name: &str) -> &str {
-    if name.is_empty() {
-        return name;
-    }
+fn normalize_media_name(s: &str) -> &str {
+    let mut s = s.trim();
 
-    let s = name.trim();
     if s.len() < 2 {
         return s;
     }
 
-    if s.starts_with('\"') && s.ends_with('\"') {
-        // trim ".."
-        return &s[1..s.len() - 1]; // s1.trim_matches('\"');
-    }
-
-    if s.starts_with('\'') && s.ends_with('\'') {
-        // trim ".."
-        return &s[1..s.len() - 1]; // s1.trim_matches('\"');
+    while (s.starts_with('\"') && s.ends_with('\"')) || (s.starts_with('\'') && s.ends_with('\'')) {
+        s = &s[1..s.len() - 1];
     }
 
     s

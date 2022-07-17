@@ -1,79 +1,209 @@
 use anyhow::{anyhow, Result};
-use clap::Parser;
+use clap::error::Error;
+use clap::{Arg, ArgMatches, Args, Command, CommandFactory, FromArgMatches, Parser};
+use std::collections::VecDeque;
 use std::path::PathBuf;
 
-#[derive(Parser, Clone, Debug)]
+#[derive(Default)]
+pub struct InputFiles {
+    pub files: Vec<InputFile>,
+}
+
+#[derive(Default)]
 pub struct InputFile {
-    /// Input track file name
-    #[clap(value_name = "FILE", parse(from_os_str))]
-    pub input: PathBuf,
+    pub file: PathBuf,
+    pub name: Option<String>,
+    pub language: Option<String>,
+    pub timescale: Option<u32>,
+    pub framerate: Option<(u32, u32)>,
+}
 
-    /// Media language, e.g. 'rus'
-    #[clap(long="lang", value_name = "language", validator=media_lang_validator)]
-    pub media_lang: Option<String>,
+#[derive(Parser)]
+struct InputFileArgs {
+    /// Input track file name.
+    #[clap(
+        long = "input-file",
+        short = 'i',
+        value_name = "FILE",
+        required = true,
+        multiple_occurrences = true,
+        allow_hyphen_values = true,
+        help_heading = Some("INPUT FILE(S)"),
+        value_parser=clap::value_parser!(PathBuf)
+    )]
+    file: Vec<PathBuf>,
 
-    /// Media name, e.g. 'Dub, Blu-ray'
+    /// Media name, e.g. 'Dub, Studio'. [Optional]
     #[clap(
         long = "name",
+        short = 'n',
         value_name = "name",
-        multiple_values = false,
-        use_value_delimiter = false
+        allow_hyphen_values = true,
+        multiple_occurrences = true,
+        help_heading = Some("INPUT FILE(S)")
     )]
-    pub media_name: Option<String>,
+    name: Vec<String>,
 
-    /// Timescale
-    #[clap(long = "ts", value_name = "timescale")]
-    pub media_timescale: Option<u32>,
+    /// Media language, e.g. 'rus'. [Optional]
+    #[clap(
+        long="language",
+        short = 'l',
+        value_name = "language",
+        multiple_occurrences = true,
+        help_heading = Some("INPUT FILE(S)"),
+        validator=media_lang_validator
+    )]
+    language: Vec<String>,
 
-    /// Set framerate only for video such as 23.97 or 30000/1001
-    #[clap(long = "fr", value_name = "framerate", value_parser=parse_framerate)]
-    pub input_video_frame_rate: Option<Framerate>,
+    /// Timescale. [Optional]
+    #[clap(
+        long = "timescale",
+        short = 't',
+        value_name = "timescale",
+        multiple_occurrences = true,
+        help_heading = Some("INPUT FILE(S)"),
+        value_parser=clap::value_parser!(u32)
+    )]
+    timescale: Vec<u32>,
+
+    /// Set framerate only for video such as 23.97 or 24000/1001. [Optional]
+    #[clap(
+        long = "framerate",
+        short = 'f',
+        value_name = "framerate",
+        multiple_occurrences = true,
+        help_heading = Some("INPUT FILE(S)"),
+        value_parser=parse_framerate
+    )]
+    framerate: Vec<(u32, u32)>,
 }
 
-pub fn parse_input_file(
-    value: &str,
-) -> Result<InputFile, Box<dyn std::error::Error + Send + Sync + 'static>> {
-    let mut args = to_clap_args(value);
-    args.insert(0, String::from("input-file"));
+impl Args for InputFiles {
+    fn augment_args(cmd: Command<'_>) -> Command<'_> {
+        let mut args: Vec<Arg> = vec![];
 
-    Ok(InputFile::try_parse_from(args)?)
-}
-
-fn to_clap_args(string: &str) -> Vec<String> {
-    let mut single_quoted_started = false;
-    let mut double_quoted_started = false;
-
-    // split
-    let words: Vec<&str> = string
-        .split(|c: char| {
-            match c {
-                '\'' => {
-                    if !double_quoted_started {
-                        single_quoted_started = !single_quoted_started;
-                    }
-                }
-                '\"' => {
-                    if !single_quoted_started {
-                        double_quoted_started = !double_quoted_started;
-                    }
-                }
-                ',' => return !single_quoted_started && !double_quoted_started,
-                _ => {}
+        for arg in InputFileArgs::command().get_arguments() {
+            if !["help", "version"].contains(&arg.get_name()) {
+                args.push(arg.clone())
             }
-            false
-        })
-        .collect();
-
-    // add '--'
-    let mut args = Vec::with_capacity(words.len());
-    args.push(String::from(words[0]));
-    if words.len() > 1 {
-        for a in words[1..].iter() {
-            args.push("--".to_string() + a);
         }
+
+        cmd.args(args)
+    }
+    fn augment_args_for_update(cmd: Command<'_>) -> Command<'_> {
+        InputFiles::augment_args(cmd)
+    }
+}
+
+impl InputFiles {
+    fn get_argument_sequence<T>(
+        matches: &mut ArgMatches,
+        arg: &str,
+    ) -> (VecDeque<usize>, VecDeque<T>)
+    where
+        T: Clone + Send + Sync + 'static,
+    {
+        (
+            matches.indices_of(arg).unwrap_or_default().collect(),
+            matches.remove_many::<T>(arg).unwrap_or_default().collect(),
+        )
+    }
+}
+
+impl FromArgMatches for InputFiles {
+    fn from_arg_matches(matches: &ArgMatches) -> Result<Self, Error> {
+        let mut matches = matches.clone();
+        Self::from_arg_matches_mut(&mut matches)
     }
 
-    args
+    fn from_arg_matches_mut(matches: &mut ArgMatches) -> Result<Self, Error> {
+        let files = InputFiles::get_argument_sequence::<PathBuf>(matches, "file");
+        let mut names = InputFiles::get_argument_sequence::<String>(matches, "name");
+        let mut languages = InputFiles::get_argument_sequence::<String>(matches, "language");
+        let mut timescales = InputFiles::get_argument_sequence::<u32>(matches, "timescale");
+        let mut framerates = InputFiles::get_argument_sequence::<(u32, u32)>(matches, "framerate");
+
+        let mut input_files = InputFiles {
+            ..Default::default()
+        };
+
+        let mut i = 1;
+        for file in files.1 {
+            let mut file = InputFile {
+                file,
+                ..Default::default()
+            };
+
+            // get next input file index
+            let mut next = usize::MAX;
+            if i < files.0.len() {
+                next = files.0[i];
+            }
+            i += 1;
+
+            // set name if provided
+            while !names.0.is_empty() {
+                let idx = names.0[0];
+
+                if idx < next {
+                    file.name = names.1.pop_front();
+                    _ = names.0.pop_front();
+                } else {
+                    break;
+                }
+            }
+
+            // set language if provided
+            while !languages.0.is_empty() {
+                let idx = languages.0[0];
+
+                if idx < next {
+                    file.language = languages.1.pop_front();
+                    _ = languages.0.pop_front();
+                } else {
+                    break;
+                }
+            }
+
+            // set timescale if provided
+            while !timescales.0.is_empty() {
+                let idx = timescales.0[0];
+
+                if idx < next {
+                    file.timescale = timescales.1.pop_front();
+                    _ = timescales.0.pop_front();
+                } else {
+                    break;
+                }
+            }
+
+            // set framerate if provided
+            while !framerates.0.is_empty() {
+                let idx = framerates.0[0];
+
+                if idx < next {
+                    file.framerate = framerates.1.pop_front();
+                    _ = framerates.0.pop_front();
+                } else {
+                    break;
+                }
+            }
+
+            input_files.files.push(file);
+        }
+
+        Ok(input_files)
+    }
+
+    fn update_from_arg_matches(&mut self, matches: &ArgMatches) -> Result<(), Error> {
+        let mut matches = matches.clone();
+        self.update_from_arg_matches_mut(&mut matches)
+    }
+
+    fn update_from_arg_matches_mut(&mut self, matches: &mut ArgMatches) -> Result<(), Error> {
+        self.files = InputFiles::from_arg_matches_mut(matches)?.files;
+        Ok(())
+    }
 }
 
 fn media_lang_validator(v: &str) -> Result<()> {
@@ -83,24 +213,12 @@ fn media_lang_validator(v: &str) -> Result<()> {
     }
 }
 
-#[derive(Clone, Debug)]
-pub struct Framerate {
-    pub nome: u32,
-    pub deno: u32,
-}
-
 fn parse_framerate(
     value: &str,
-) -> Result<Framerate, Box<dyn std::error::Error + Send + Sync + 'static>> {
+) -> Result<(u32, u32), Box<dyn std::error::Error + Send + Sync + 'static>> {
     Ok(if let Some((nome, deno)) = value.split_once('/') {
-        Framerate {
-            nome: nome.parse::<u32>()?,
-            deno: deno.parse::<u32>()?,
-        }
+        (nome.parse::<u32>()?, deno.parse::<u32>()?)
     } else {
-        Framerate {
-            nome: (value.parse::<f64>()? * 1000.0) as u32,
-            deno: 1000,
-        }
+        ((value.parse::<f64>()? * 1000.0) as u32, 1000)
     })
 }

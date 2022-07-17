@@ -1,14 +1,13 @@
-use crate::cli_input_file::{parse_input_file, InputFile};
+use crate::cli_input_file::InputFiles;
 use crate::mp4_helpers::{ema_mp4_ctrl_handle_t, error_by_code};
 use anyhow::{bail, Result};
 use clap::{crate_authors, crate_description, crate_name, crate_version, AppSettings, Parser};
 use std::ffi::CString;
 use std::fs::OpenOptions;
 use std::os::raw::c_void;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
-const EXAMPLES: &str = "
-EXAMPLES:
+const EXAMPLES: &str = "EXAMPLES:
     To create an audio-only .mp4 file with EC-3 audio:
         mp4muxer2 -o output.mp4 -i audio.ec3 --mpeg4-comp-brand mp42,iso6,isom,msdh,dby1
     To multiplex AC-4 audio and H.264 video:
@@ -23,12 +22,8 @@ EXAMPLES:
         Note: For the Dolby vision profile 8, dv-bl-compatible-id is necessary.
 
     To multiplex Dolby vision BL+EL+RPU file into a .mp4 file with EC-3 audio track, set framerate, track language and name:
-        mp4muxer2 -i ves_bl_el_rpu.265,name=\"'Cool video'\",fr=24000/1001 -i audio.ec3,lang=rus,name=\"'Dub, Blu-Ray'\" -o output.mp4 --dv-profile 8 --dv-bl-compatible-id 2 --mpeg4-comp-brand mp42,iso6,isom,msdh,dby1 --overwrite
+        mp4muxer2 -i ves_bl_el_rpu.265 -n \"Cool video\" -f 24000/1001 -i audio.ec3 -l rus -n \"Dub, Studio\" -o output.mp4 --dv-profile 8 --dv-bl-compatible-id 2 --mpeg4-comp-brand mp42,iso6,isom,msdh,dby1 --overwrite
         Note: For the Dolby vision profile 8, dv-bl-compatible-id is necessary.
-
-    foo --hello
-        Example :
-        --input-file video.hevc,fr=23.97 --input-file audio.ac3,lang=rus,name=\"'Dub, Blu-ray'\"
 ";
 
 #[derive(Parser)]
@@ -39,31 +34,29 @@ EXAMPLES:
 #[clap(global_setting(AppSettings::DeriveDisplayOrder))]
 #[clap(after_help = EXAMPLES)]
 struct Cli {
-    /// Overwrites the existing output .mp4 file if there is one
+    /// Overwrites the existing output .mp4 file if there is one.
     #[clap(long)]
     overwrite: bool,
 
-    /// Overrides the timescale of the entire presentation
+    /// Overrides the timescale of the entire presentation.
     #[clap(long, value_name = "arg")]
     mpeg4_timescale: Option<u32>,
 
-    /// Specifies the ISO base media file format brand in the format
+    /// Specifies the ISO base media file format brand in the format.
     #[clap(long, value_name = "arg")]
     mpeg4_brand: Option<String>,
 
     /// Specifies the ISO base media file format compatible brand(s)
-    /// in the format of a comma separated list, for example mp42,iso6,isom,msdh,dby1
+    /// in the format of a comma separated list, for example mp42,iso6,isom,msdh,dby1.
     #[clap(long, value_name = "arg")]
     mpeg4_comp_brand: Option<String>,
 
     /// Sets the output file format or the specification to which the
     /// output file must conform. Valid values include 'mp4' and 'frag-mp4'.
-    /// 'mp4' is the default value
     #[clap(long, value_name = "arg", possible_values = ["mp4", "frag-mp4"], default_value = "mp4")]
     output_format: String,
 
     /// Sets the maximum fragment duration in milliseconds.
-    /// By default, the max duration is 2s
     #[clap(long, value_name = "arg")]
     mpeg4_max_frag_duration: Option<u32>,
 
@@ -76,7 +69,7 @@ struct Cli {
         5 - dvhe.05, BL codec: HEVC10; EL codec: N/A;    BL compatibility: None.\n\
         7 - dvhe.07, BL codec: HEVC10; EL codec: HEVC10; BL compatibility: Blu-ray HDR10.\n\
         8 - dvhe.08, BL codec: HEVC10; EL codec: N/A;    BL compatibility: SDR/HDR.\n\
-        9 - dvav.09, BL codec: AVC;    EL codec: N/A;    BL compatibility: SDR/HDR.",
+        9 - dvav.09, BL codec: AVC;    EL codec: N/A;    BL compatibility: SDR/HDR.\n",
         possible_values = ["4", "5", "7", "8", "9"]
     )]
     dv_profile: Option<u8>,
@@ -92,59 +85,50 @@ struct Cli {
     dvh1flag: Option<i32>,
 
     /// Set the elementary stream index (starting 1) to set HEVC track's sample entry name to 'hvc1',
-    /// default sample entry box name is 'hev1' for cross compatible stream"
+    /// default sample entry box name is 'hev1' for cross compatible stream".
     #[clap(long, value_name = "stream index")]
     hvc1flag: Option<i32>,
 
-    /// Output .mp4 file name
-    #[clap(long, short, value_name = "FILE", parse(from_os_str))]
-    output_file: PathBuf,
-
+    /// Output .mp4 file name.
     #[clap(
         long,
         short,
-        value_name = "FILE(s)",
-        multiple_occurrences = true,
-        required = true,
-        help_heading = Some("INPUT FILES"),
-        help = "Add elementary streams to MP4 container.\n\
-        Comma delimited parameters:\n\
-        <file> - file to add (supports H264, H265, AC3, EC3, and AC4). Mandatory.\n\
-        lang=<language> - media language, e.g. 'rus'\n\
-        name=<name> - media name, e.g. 'Dub, Blu-ray'\n\
-        ts=<timescale> - timescale integer value\n\
-        fr=<framerate> - set framerate only for video such as 23.97 or 24000/1001",
-        value_parser=parse_input_file
+        value_name = "FILE",
+        allow_hyphen_values = true,
+        parse(from_os_str)
     )]
-    input_file: Vec<InputFile>,
+    output_file: PathBuf,
+
+    #[clap(flatten)]
+    input_files: InputFiles,
 }
 
 pub fn parse_cli(handle: *mut c_void) -> Result<()> {
     let cli = Cli::parse();
 
     // --input-file
-    for file in cli.input_file {
+    for input_file in cli.input_files.files {
         {
-            if let Err(err) = OpenOptions::new().read(true).open(&file.input) {
+            if let Err(err) = OpenOptions::new().read(true).open(&input_file.file) {
                 bail!(
                     "Failed to open input file \"{}\": {}",
-                    file.input.to_str().unwrap_or("<unknown file>"),
+                    input_file.file.to_str().unwrap_or("<unknown file>"),
                     err
                 );
             }
         }
 
-        if let Some(frame_rate) = file.input_video_frame_rate {
-            ema_mp4_mux_set_video_framerate(handle, frame_rate.nome, frame_rate.deno)?;
+        if let Some(framerate) = input_file.framerate {
+            ema_mp4_mux_set_video_framerate(handle, framerate.0, framerate.1)?;
         }
 
         ema_mp4_mux_set_input(
             handle,
-            file.input.into_os_string().into_string().unwrap(),
-            file.media_lang,
-            file.media_name,
+            &input_file.file,
+            input_file.language,
+            input_file.name,
             None,
-            file.media_timescale.unwrap_or(0),
+            input_file.timescale.unwrap_or(0),
             0,
             0,
         )?;
@@ -239,7 +223,7 @@ fn ema_mp4_mux_set_video_framerate(
 #[allow(clippy::too_many_arguments)]
 fn ema_mp4_mux_set_input(
     handle: ema_mp4_ctrl_handle_t,
-    filename: String,
+    filename: &Path,
     lang: Option<String>,
     name: Option<String>,
     enc_name: Option<String>,
@@ -249,7 +233,7 @@ fn ema_mp4_mux_set_input(
 ) -> Result<()> {
     let res;
 
-    let filename = CString::new(filename).unwrap();
+    let filename = CString::new(filename.to_string_lossy().as_bytes()).unwrap();
     let lang = CString::new(lang.unwrap_or_default()).unwrap();
     let name = CString::new(normalize_media_name(&name.unwrap_or_default())).unwrap();
     let enc_name = CString::new(enc_name.unwrap_or_default()).unwrap();

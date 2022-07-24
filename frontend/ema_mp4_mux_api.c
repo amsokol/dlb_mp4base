@@ -802,18 +802,13 @@ ema_mp4_mux_set_input(ema_mp4_ctrl_handle_t handle,
     {
         if (strlen(lang) != 3)
         {
-           msglog(NULL, MSGLOG_ERR, "ERROR! Input lang code:%s is not correct! \n", lang);
-           return EMA_MP4_MUXED_PARAM_ERR;
+            msglog(NULL, MSGLOG_ERR, "ERROR! Input lang code:%s is not correct! \n", lang);
+            return EMA_MP4_MUXED_PARAM_ERR;
         }
-
-        usr_cfg_es->lang            = (lang) ? STRDUP_CHK(lang) : 0;
-    }
-    
-    if (name)
-    {
-        usr_cfg_es->hdlr_name = STRDUP_CHK(name);
     }
 
+    usr_cfg_es->lang = (lang) ? STRDUP_CHK(lang) : 0;
+    usr_cfg_es->hdlr_name = (name) ? STRDUP_CHK(name) : 0;
     usr_cfg_es->enc_name        = (enc_name) ? STRDUP_CHK(enc_name) : 0;
     /** chunk_span_size: 0 means no chunk span control by size */
     usr_cfg_es->chunk_span_size = 0;

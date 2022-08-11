@@ -147,7 +147,7 @@ impl FromArgMatches for InputFiles {
 
                 if idx < next {
                     file.name = names.1.pop_front();
-                    _ = names.0.pop_front();
+                    let _ = names.0.pop_front();
                 } else {
                     break;
                 }
@@ -159,7 +159,7 @@ impl FromArgMatches for InputFiles {
 
                 if idx < next {
                     file.language = languages.1.pop_front();
-                    _ = languages.0.pop_front();
+                    let _ = languages.0.pop_front();
                 } else {
                     break;
                 }
@@ -171,7 +171,7 @@ impl FromArgMatches for InputFiles {
 
                 if idx < next {
                     file.timescale = timescales.1.pop_front();
-                    _ = timescales.0.pop_front();
+                    let _ = timescales.0.pop_front();
                 } else {
                     break;
                 }
@@ -183,7 +183,7 @@ impl FromArgMatches for InputFiles {
 
                 if idx < next {
                     file.framerate = framerates.1.pop_front();
-                    _ = framerates.0.pop_front();
+                    let _ = framerates.0.pop_front();
                 } else {
                     break;
                 }

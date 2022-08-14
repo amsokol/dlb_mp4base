@@ -12,3 +12,12 @@ edition = "2021"
 [dependencies]
 anyhow = { version = "1" }
 clap = { version = "3", features = ["derive", "suggestions", "color", "cargo"] }
+
+[[bin]]
+name = "mp4muxer2"
+path = "src/main.rs"
+
+[profile.release]
+codegen-units = 1
+lto = true
+strip = true

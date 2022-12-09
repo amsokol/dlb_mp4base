@@ -26,7 +26,7 @@ For Windows platform development, Visual Studio 2010 must be installed with SP1.
 
 #### Using the Rust, cmake and Visual Studio tools (on Windows)
 
-    After cloning the dlb_mp4base repository to your local machine, go to the appropriate directory, depending on your machine OS and architecture, such as:
+    After cloning the dlb_mp4base repository to your local machine, go to the:
     "cd mp4muxer2\make\mp4muxer.library"
 
     Then build one of the following make targets:
@@ -38,21 +38,18 @@ For Windows platform development, Visual Studio 2010 must be installed with SP1.
     "cargo update"
     "cargo build --release"
 
-#### Using the makefiles (on Linux and MacOS)
+#### Using the Rust, cmake (on Linux and MacOS)
 
-    After cloning the dlb_mp4base repository to your local machine, go to the appropriate directory, depending on your machine OS and architecture, such as:
-    "cd dlb_mp4base/make/mp4muxer<architecture>"
+    After cloning the dlb_mp4base repository to your local machine, go to the:
+    "cd mp4muxer2/make/mp4muxer.library"
 
     Then build one of the following make targets:
-    "make mp4muxer_release"
-    "make mp4muxer_debug"
-
-#### Using the Visual Studio Solutions(on Windows)
-
-    From a Visual Studio 2010 command line window:
-    Go to a directory of your choice
-    "cd dlb_mp4base\make\mp4muxer\mp4muxer<architecture>"
-    "devenv mp4muxer_2010.sln /rebuild debug/release"
+    "cmake -DCMAKE_BUILD_TYPE=Release -S . -B ../../build"
+    "cd ../../build"
+    "make"
+    "cd ../mp4muxer2.rs"
+    "cargo update"
+    "cargo build --release"
 
 ## Release Notes
 

@@ -4,7 +4,7 @@ authors = ["Aleksandr Sokolovskii <amsokol+github@gmail.com>"]
 repository = "https://github.com/amsokol/mp4muxer2"
 description = "MP4 muxer based on https://github.com/DolbyLaboratories/dlb_mp4base great library"
 license = "MIT"
-version = "2.2.2"
+version = "2.2.3"
 edition = "2021"
 build = "build.rs"
 

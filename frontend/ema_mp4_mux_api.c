@@ -492,6 +492,7 @@ ema_mp4_mux_start(ema_mp4_ctrl_handle_t handle)
         handle->mp4_handle->curr_usr_cfg_stream_index = es_idx;
 
         printf("[%d/%d] Parsing track \"%s\"... \n", es_idx + 1, steps, usr_cfg_es->input_fn);
+        fflush(stdout);
 
         /** check if track to add, delete, replace does even exist */
         if (usr_cfg_es->mp4_tid > handle->usr_cfg_mux.es_num)
@@ -578,6 +579,7 @@ ema_mp4_mux_start(ema_mp4_ctrl_handle_t handle)
         }
 
         printf("Done\n");
+        fflush(stdout);
     }
 
     printf("[%d/%d] Saving output file(s) \"%s\"... ", steps, steps, handle->usr_cfg_mux.output_fn);

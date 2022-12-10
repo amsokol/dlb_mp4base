@@ -582,7 +582,8 @@ ema_mp4_mux_start(ema_mp4_ctrl_handle_t handle)
         fflush(stdout);
     }
 
-    printf("[%d/%d] Saving output file(s) \"%s\"... ", steps, steps, handle->usr_cfg_mux.output_fn);
+    printf("[%d/%d] Saving output file(s) \"%s\"... \n", steps, steps, handle->usr_cfg_mux.output_fn);
+    fflush(stdout);
 
     /**** the summary part of mp4 file is ready and output */
     msglog(NULL, MSGLOG_INFO, "Output headers\n");
@@ -594,6 +595,7 @@ ema_mp4_mux_start(ema_mp4_ctrl_handle_t handle)
     CHK_ERR_RET(ret);
 
     printf("Done\n");
+    fflush(stdout);
 
     msglog(NULL,MSGLOG_INFO,"\n");
     return EMA_MP4_MUXED_OK;
